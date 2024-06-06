@@ -1,6 +1,6 @@
 {
-  "name": "topicos-especiales",
-  "module": "AllAndFirst.ts",
+  "name": "ejercitar",
+  "module": "Ejercicio",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
