@@ -1,79 +1,5 @@
-import { Either } from "./Either";
-
-console.log("Hello via Bun!");
-
-
-class OrdenCompra  {
-    itemsOrden: ItemOrden[];
-    cliente: Cliente;
-    fecha: Date= new Date();
-    
-
-    constructor(itemsOrden: ItemOrden[], cliente: Cliente, fecha?: Date) {
-        this.itemsOrden = itemsOrden;
-        this.cliente = cliente;
-        if (fecha) {
-            this.fecha = fecha;
-        }
-    }
-
-}
-
-class ItemOrden  {
-    producto: string;
-    cantidad: number;
-    precioLista: number;
-    precioFinal: number;
-
-    constructor(producto: string, cantidad: number, precioL: number, precioF?: number) {
-        this.producto = producto;
-        this.cantidad = cantidad;
-        this.precioLista = precioL;
-        if (precioF) {
-            this.precioFinal = precioF;
-        }else{
-            this.precioFinal= precioL;
-        }
-    }
-
-
-}
-
-class Cliente  {
-    nombre: string;
-    direccion: Direccion;
-    status: boolean;
-    infoCrediticia?: number;
-    telefono?: string;
-
-    constructor(nombre: string, direccion: Direccion, status: boolean, infoCrediticia?: number, telefono?: string) {
-        this.nombre = nombre;
-        this.direccion = direccion;
-        this.status = status;
-        if (infoCrediticia) {
-            this.infoCrediticia = infoCrediticia;
-        }
-        if (telefono) {
-            this.telefono = telefono;
-        }
-    }
-
-}
-
-class Direccion  {
-        pais : string;
-        ciudad: string;
-        calle: string;
-        codPostal: string;
-
-        constructor(pais: string, ciudad: string, calle: string, codPostal: string) {
-            this.pais = pais;
-            this.ciudad = ciudad;
-            this.calle = calle;
-            this.codPostal = codPostal;
-            
-        } 
-}
+import { Either } from "../Either";
+import { Cliente, Direccion, ItemOrden, OrdenCompra } from "./OrdenDeCompra";
 
 abstract class Validador {
     siguienteValidador?: Validador;
@@ -180,6 +106,38 @@ class ValidadorItems extends Validador{
         
     }
 }
+class ValidadorOrden {
+    private validadores: Validador[] = [];
+
+    constructor() {
+        let validadorDireccion = new ValidadorDireccion();
+        let validadorCliente = new ValidadorCliente();
+        let validadorItems = new ValidadorItems();
+        validadorDireccion.asignarSiguienteValidador(validadorCliente);
+        validadorCliente.asignarSiguienteValidador(validadorItems);
+        this.validadores.push(validadorDireccion);
+    }
+
+
+    agregarValidador(validador: Validador) {
+        this.validadores.push(validador);
+    }
+
+    validar(orden: OrdenCompra): Either<Error[], undefined> {
+        let errores: Error[] = [];
+        for (let validador of this.validadores) {
+            let validacion = validador.validar(orden);
+            if (validacion.isLeft()) {
+                errores.push(...validacion.getLeft());
+            }
+        }
+        if (errores.length > 0) {
+            return Either.makeLeft(errores);
+        } else {
+            return Either.makeRight(undefined);
+        }
+    }
+}
 
 let direccion = new Direccion("Mexico", "CDMX", "Calle 123", "12345");
 let cliente = new Cliente("Juan", direccion, true);
@@ -188,14 +146,17 @@ let item2 = new ItemOrden("Producto2", 1, 100, 90);
 let date = new Date();
 let orden = new OrdenCompra([item,item2], cliente, date);
 
-let validadorDireccion = new ValidadorDireccion();
-let validadorCliente = new ValidadorCliente();
-let validadorItems = new ValidadorItems();
+let validadorOrden = new ValidadorOrden();
+// let validadorDireccion = new ValidadorDireccion(); //Asi seria si se quieren asignar externamente los validadores
+// let validadorCliente = new ValidadorCliente();
+// let validadorItems = new ValidadorItems();
 
-validadorDireccion.asignarSiguienteValidador(validadorCliente);
-validadorCliente.asignarSiguienteValidador(validadorItems);
+// validadorOrden.agregarValidador(validadorDireccion);
+// validadorOrden.agregarValidador(validadorCliente);
+// validadorOrden.agregarValidador(validadorItems);
 
-let validacion = validadorDireccion.validar(orden);
+
+let validacion = validadorOrden.validar(orden);
 if (validacion.isLeft()) {
     console.log("Errores: ", validacion.getLeft());
 } else {
