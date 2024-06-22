@@ -3,7 +3,7 @@ export class Optional<T> {
     private assigned: boolean;
   
     constructor(value?: T) {
-      if (value) {
+      if (value!=undefined) {
         this.value = value;
         this.assigned = true;
       } else {
