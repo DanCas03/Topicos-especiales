@@ -1,6 +1,4 @@
-
-
-interface iMensaje {  //Clase abstractade la que heredan las demas
+interface iMensaje {  //interfaz que describe un objeto mensaje
     titulo:string;
     texto:string;
     mostrarMensaje():void;
@@ -87,7 +85,6 @@ class EncabezadoTexto extends DecoradorDeMensaje { // DecoradorDeMensaje que le 
         this.mensaje.mostrarMensaje();
     }
 }
-
 {
     const mensajito = new Mensaje("Taller2", "Este es un mensaje de prueba para el ejercicio 2");
     mensajito.mostrarMensaje();
